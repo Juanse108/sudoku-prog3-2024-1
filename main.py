@@ -55,29 +55,37 @@ def validar_numero():
     email = data['email']
 
     if validar_fila_columna(tablero, numero, fila, columna):
+        # Si el número es válido, enviar el correo electrónico con el tablero
         send_email(email, generate_sudoku_table(tablero))
         return jsonify({'message': 'Dato ubicado correctamente. Correo electrónico enviado'}), 200
     else:
         return jsonify({'message': 'El dato no puede ser ubicado, cambie de posición'}), 400
 
 
-def send_email(email, body):
-    connection_string = os.environ.get("CONNECTION_STRING")
-    client = EmailClient.from_connection_string(connection_string)
+# Función para enviar el correo electrónico con el tablero en formato HTML
+def send_email(email, sudoku_table):
+    try:
+        connection_string = os.environ.get("CONNECTION_STRING")
+        client = EmailClient.from_connection_string(connection_string)
 
-    message = {
-        "senderAddress": os.environ.get("SENDER_ADDRESS"),
-        "recipients": {
-            "to": [{"address": email}],
-        },
-        "content": {
-            "subject": "Tablero de Sudoku",
-            "html": body
+        message = {
+            "senderAddress": os.environ.get("SENDER_ADDRESS"),
+            "recipients": {
+                "to": [{"address": email}],
+            },
+            "content": {
+                "subject": "Tablero de Sudoku",
+                "html": f"<h1>Tablero de Sudoku</h1>{sudoku_table}"
+            }
         }
-    }
 
-    poller = client.begin_send(message)
-    result = poller.result()
+        poller = client.begin_send(message)
+        result = poller.result()
+
+    except Exception as ex:
+        print(ex)
+
+    return
 
 
 if __name__ == '__main__':
