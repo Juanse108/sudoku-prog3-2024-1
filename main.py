@@ -1,11 +1,10 @@
 import json
-import os
 from dotenv import load_dotenv
 from flask import Flask, request, jsonify
 from azure.communication.email import EmailClient
-
+import sudoku3x3
 app = Flask(__name__)
-
+a=sudoku3x3.Cuadros()
 # Cargar las variables de entorno desde el archivo .env
 load_dotenv()
 
@@ -14,22 +13,24 @@ with open("ejemploTablero.json") as sudoku:
 
 
 def validar_fila_columna(sudoku, numero, fila, columna):
-    fila = (fila - 1) // 3
+    fila1 = (fila - 1) // 3
     columna1 = (columna - 1) // 3
+    fila2 = (fila - 1) % 3
     columna2 = (columna - 1) % 3
-    columna3 = (fila - 1) % 3
 
-    if sudoku[fila]["columnas"][columna1][columna2][columna3] == numero:
+    if sudoku[fila1]["columnas"][columna1][fila2][columna2] == numero:
         return False
 
+    # validar columnas:
     for i in range(3):
         for j in range(3):
-            if sudoku[i]["columnas"][columna1][columna2][j] == numero:
+            if sudoku[i]["columnas"][columna1][j][columna2] == numero:
                 return False
 
+    # validar filas:
     for k in range(3):
         for l in range(3):
-            if sudoku[fila]["columnas"][columna1][l][columna3] == numero:
+            if sudoku[fila1]["columnas"][l][fila2][k] == numero:
                 return False
 
     return True
@@ -37,11 +38,19 @@ def validar_fila_columna(sudoku, numero, fila, columna):
 
 def generate_sudoku_table(sudoku):
     html = '<html><body><table border="1">'
-    for row in sudoku:
+
+    for i in range(3):
         html += '<tr>'
-        for cell in row:
-            html += '<td>{}</td>'.format(cell)
+        for j in range(3):
+            html += '<td><table border="1">'
+            for k in range(3):
+                html += '<tr>'
+                for l in range(3):
+                    html += f'<td>{sudoku[i]["columnas"][j][k][l]}</td>'
+                html += '</tr>'
+            html += '</table></td>'
         html += '</tr>'
+
     html += '</table></body></html>'
     return html
 
@@ -54,7 +63,7 @@ def validar_numero():
     columna = data['columna']
     email = data['email']
 
-    if validar_fila_columna(tablero, numero, fila, columna):
+    if validar_fila_columna(tablero, numero, fila, columna) and a.validador(tablero):
         # Si el número es válido, enviar el correo electrónico con el tablero
         send_email(email, generate_sudoku_table(tablero))
         return jsonify({'message': 'Dato ubicado correctamente. Correo electrónico enviado'}), 200
