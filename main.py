@@ -65,11 +65,13 @@ def validar_numero():
 # Función para enviar el correo electrónico con el tablero en formato HTML
 def send_email(email, sudoku_table):
     try:
-        connection_string = os.environ.get("CONNECTION_STRING")
+        # Actualiza la cadena de conexión con el formato correcto
+        connection_string = ("endpoint=https://sudokuprog3.unitedstates.communication.azure.com/;accesskey="
+                             "qSZIprLi6BZBqPUG7z4rScmnfw6LD5/YVH2X0bvErG8yTopiU8dTrcVANznloyACE1X2L0eN+6/LmCavGf+VCg==")
         client = EmailClient.from_connection_string(connection_string)
 
         message = {
-            "senderAddress": os.environ.get("SENDER_ADDRESS"),
+            "senderAddress": "DoNotReply@ecac96ec-69a5-4a6d-90a0-0ed270d0b012.azurecomm.net",
             "recipients": {
                 "to": [{"address": email}],
             },
